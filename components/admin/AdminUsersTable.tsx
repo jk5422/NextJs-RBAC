@@ -13,12 +13,16 @@ import {
 import EditUserDialog from "./EditUserDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { Button } from "@/components/ui/button";
+import { AdminUser } from "@/types/admin-user";
+import AdminUsersTableSkeleton from "./AdminUsersTableSkeleton";
 
 export default function AdminUsersTable() {
     const [page, setPage] = useState(1);
     const { data, isLoading } = useAdminUsers(page);
 
-    if (isLoading) return <p>Loading users...</p>;
+    if (isLoading) {
+        return <AdminUsersTableSkeleton />;
+    }
 
     return (
         <div className="space-y-4">
@@ -35,7 +39,7 @@ export default function AdminUsersTable() {
                 </TableHeader>
 
                 <TableBody>
-                    {data?.data?.map((user: any) => (
+                    {data?.data?.map((user: AdminUser) => (
                         <TableRow key={user._id}>
                             <TableCell>{user.name}</TableCell>
                             <TableCell>{user.email}</TableCell>

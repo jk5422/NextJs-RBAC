@@ -3,6 +3,7 @@
  * This API logs user in and sets httpOnly cookie
  */
 
+import { BadRequestError, ForbiddenError } from "@/lib/apiError";
 import { connectDB } from "@/lib/db";
 import { signToken } from "@/lib/jwt";
 import { comparePassword } from "@/lib/password";
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
         // Validate input using Zod
         const parsedData = loginSchema.safeParse(body);
         if (!parsedData.success) {
-            return NextResponse.json({ message: "Invalid Inputs Data", errors: parsedData.error.flatten() }, { status: 400 })
+            return BadRequestError('Invalid Inputs Data')
         }
 
         const { email, password } = parsedData?.data || {};
@@ -29,17 +30,14 @@ export async function POST(req: Request) {
         // Check if user exists
         const user = await User.findOne({ email }).select('+password');
         if (!user) {
-            return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
+            return BadRequestError('Invalid email or password');
         }
 
         // compare passoword
         const isPasswordValid = await comparePassword(password, user.password);
 
         if (!isPasswordValid) {
-            return NextResponse.json(
-                { message: "Invalid email or password" },
-                { status: 401 }
-            );
+            return BadRequestError('Invalid email or password');
         }
 
         // create JWT
@@ -63,7 +61,6 @@ export async function POST(req: Request) {
 
     }
     catch (err) {
-        console.error("Login Error :", err);
-        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 })
+        return ForbiddenError('Internal Server Error');
     }
 }

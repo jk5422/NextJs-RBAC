@@ -11,6 +11,8 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
+import { PaginatedResponse } from "@/types/pagination";
+import { AdminUser } from "@/types/admin-user";
 
 export default function DeleteUserDialog({
     userId,
@@ -27,17 +29,66 @@ export default function DeleteUserDialog({
                 credentials: "include",
             });
 
-            const result = await res.json();
-            if (!res.ok) throw new Error(result.message);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Delete failed");
+            }
 
-            return result;
+            return true;
         },
+
+        // 🔥 OPTIMISTIC UPDATE START
+        onMutate: async () => {
+            await queryClient.cancelQueries({
+                queryKey: ["admin-users"],
+            });
+
+            const previousData =
+                queryClient.getQueriesData<PaginatedResponse<AdminUser>>({
+                    queryKey: ["admin-users"],
+                });
+
+            // Remove user optimistically
+            queryClient.setQueriesData<PaginatedResponse<AdminUser>>(
+                { queryKey: ["admin-users"] },
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        data: old.data.filter(
+                            (user) => user._id !== userId
+                        ),
+                        pagination: {
+                            ...old.pagination,
+                            total: old.pagination.total - 1,
+                        },
+                    };
+                }
+            );
+
+            return { previousData };
+        },
+
+        onError: (_error, _variables, context) => {
+            // 🔄 ROLLBACK
+            context?.previousData.forEach(([key, data]) => {
+                queryClient.setQueryData(key, data);
+            });
+
+            toast.error("Failed to delete user");
+        },
+
         onSuccess: () => {
             toast.success("User deleted");
-            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
             setOpen(false);
         },
-        onError: (e: any) => toast.error(e.message),
+
+        onSettled: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["admin-users"],
+            });
+        },
+        // 🔥 OPTIMISTIC UPDATE END
     });
 
     return (
@@ -54,12 +105,15 @@ export default function DeleteUserDialog({
                 </DialogHeader>
 
                 <p className="text-sm text-muted-foreground">
-                    Are you sure you want to delete this user? This action
-                    cannot be undone.
+                    Are you sure you want to delete this user?
+                    This action cannot be undone.
                 </p>
 
                 <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setOpen(false)}>
+                    <Button
+                        variant="outline"
+                        onClick={() => setOpen(false)}
+                    >
                         Cancel
                     </Button>
                     <Button

@@ -63,7 +63,7 @@ export default function EditUserDialog({ user }: { user: AdminUser }) {
             queryClient.invalidateQueries({ queryKey: ["admin-users"] });
             setOpen(false);
         },
-        onError: (e: any) => toast.error(e.message),
+        onError: (e: object) => toast.error(e.message),
     });
 
     return (
