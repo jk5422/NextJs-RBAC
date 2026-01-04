@@ -59,6 +59,17 @@ export async function POST(req: Request) {
         // Set cookie; enable secure only in production so it works over http in dev
         response.cookies.set('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
 
+        // Dev-only: log that cookie was set and decoded payload for debugging (do not leak in prod)
+        if (process.env.NODE_ENV !== 'production') {
+            try {
+                const { decodeToken } = await import("@/lib/decodeToken");
+                const decoded = decodeToken(token);
+                console.log("Login debug: token cookie set", { userId: user._id?.toString(), role: user.role, decoded });
+            } catch (e) {
+                console.log("Login debug: failed to decode token", e);
+            }
+        }
+
         return response;
 
     }

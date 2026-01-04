@@ -4,6 +4,10 @@ export type DecodedToken = {
     exp?: number;
 };
 
+// NOTE: `decodeToken` does a non-verified payload decode and is *only* suitable
+// for non-security-related tasks (e.g., debugging, UI hints). Do NOT use it for
+// authorization or RBAC decisions. Always use `verifyToken` (server-side) to make
+// authoritative security checks that validate the token signature and expiry.
 export function decodeToken(token: string): DecodedToken | null {
     try {
         const payload = token.split(".")[1];

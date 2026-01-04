@@ -21,7 +21,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Invalid Inputs Data", errors: parsedData.error.flatten() }, { status: 400 })
         }
 
-        const { name, email, password, role } = parsedData?.data || {};
+        const { name, email, password } = parsedData?.data || {};
 
         // Connect database
         await connectDB();
@@ -35,8 +35,8 @@ export async function POST(req: Request) {
         // hash passoword
         const hashedPassword = await hashPassword(password);
 
-        // create user
-        await User.create({ name, email, password: hashedPassword, role });
+        // create user - enforce role=\"user\" for public registration
+        await User.create({ name, email, password: hashedPassword, role: 'user' });
 
         // send response
         return NextResponse.json({ message: "User Registered Successfully" }, { status: 201 })

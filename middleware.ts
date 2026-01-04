@@ -10,6 +10,10 @@ export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const token = request.cookies.get("token")?.value;
 
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('Middleware debug: pathname=', pathname, 'hasToken=', Boolean(token));
+    }
+
     const isAuthPage =
         pathname.startsWith("/login") || pathname.startsWith("/register");
 
@@ -18,23 +22,23 @@ export function middleware(request: NextRequest) {
 
     // ❌ Not logged in → protected routes
     if (!token && (isProfileRoute || isAdminRoute)) {
+        if (process.env.NODE_ENV !== 'production') console.log('Middleware debug: redirect to /login (no token)');
         return NextResponse.redirect(new URL("/login", request.url));
     }
 
     // ❌ Logged in → auth pages
     if (token && isAuthPage) {
+        if (process.env.NODE_ENV !== 'production') console.log('Middleware debug: redirect to /profile (isAuthPage, logged in)');
         return NextResponse.redirect(new URL("/profile", request.url));
     }
 
-    // 🔐 STRICT ADMIN CHECK
-    if (token && isAdminRoute) {
-        const decoded = decodeToken(token);
-
-        // ❌ Not admin OR cannot decode
-        if (!decoded || decoded.role !== "admin") {
-            return NextResponse.redirect(new URL("/profile", request.url));
-        }
-    }
+    // NOTE: Middleware runs at the Edge/browser navigation layer and should NOT make
+    // security-critical auth decisions based on unverified token payloads (e.g. decoding
+    // the JWT payload without verifying its signature). Doing so can be spoofed by an
+    // attacker. Use *server-side* checks (for example, `app/(dashboard)/admin/layout.tsx`)
+    // or protected API endpoints that call `verifyToken` to make authoritative RBAC decisions.
+    // Here we keep middleware responsibility narrow (presence-only checks and redirects)
+    // and defer strict RBAC to server-side layouts and APIs for defense-in-depth.
 
     return NextResponse.next();
 }

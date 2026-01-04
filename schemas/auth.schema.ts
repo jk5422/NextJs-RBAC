@@ -4,7 +4,7 @@ export const registerSchema = z.object({
     name: z.string().min(2, { message: "Name is required" }),
     email: z.string().email(),
     password: z.string().min(6, { message: "Password should be at least 6 character long" }),
-    role: z.enum(['admin', 'user'])
+    // role is not accepted during public registration to prevent unauthorized admin creation
 })
 
 export const loginSchema = z.object({
