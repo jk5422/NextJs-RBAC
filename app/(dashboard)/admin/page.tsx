@@ -1,3 +1,5 @@
+import AdminUsersTable from "@/components/admin/AdminUsersTable";
+
 export default function AdminPage() {
     return (
         <div className="space-y-4">
@@ -9,6 +11,10 @@ export default function AdminPage() {
                 <p className="text-sm text-slate-600">
                     Only admins can see this page.
                 </p>
+            </div>
+
+            <div className="space-y-4">
+                <AdminUsersTable />
             </div>
         </div>
     );
