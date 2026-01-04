@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ThemeToggle } from "../theme-toggle";
 
 export function Header() {
     const router = useRouter();
@@ -22,6 +23,8 @@ export function Header() {
             <span className="text-sm text-slate-600">
                 Dashboard
             </span>
+
+            <ThemeToggle />
 
             <Button variant="outline" size="sm" onClick={logout}>
                 Logout

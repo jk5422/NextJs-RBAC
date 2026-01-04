@@ -8,7 +8,7 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 export function Sidebar() {
     const pathname = usePathname();
     const { data: user, isLoading } = useAuthUser();
-    console.log(user, "asdadsadasdsa")
+
     if (isLoading) {
         return (
             <aside className="w-64 border-r bg-white p-4">

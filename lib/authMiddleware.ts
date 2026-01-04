@@ -1,10 +1,11 @@
+import { UnauthorizedError } from "./apiError";
 import { verifyToken } from "./jwt";
 
 export function requireAuthFromRequest(req: Request) {
     const cookieHeader = req?.headers?.get("cookie") || '';
 
     if (!cookieHeader) {
-        throw new Error("Unauthorized");
+        throw UnauthorizedError();
     }
 
     const token = cookieHeader
@@ -13,7 +14,8 @@ export function requireAuthFromRequest(req: Request) {
         ?.split("=")[1];
 
     if (!token) {
-        throw new Error("Unauthorized");
+        throw UnauthorizedError();
+
     }
 
     return verifyToken(token) as {

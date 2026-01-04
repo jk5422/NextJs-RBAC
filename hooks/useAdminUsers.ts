@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { AdminUser } from "@/types/admin-user";
+import { PaginatedResponse } from "@/types/pagination";
+import { UnauthorizedError } from "@/lib/apiError";
 
 export function useAdminUsers(page: number) {
-    return useQuery({
+    return useQuery<PaginatedResponse<AdminUser>>({
         queryKey: ["admin-users", page],
         queryFn: async () => {
             const res = await fetch(
@@ -10,7 +13,8 @@ export function useAdminUsers(page: number) {
             );
 
             if (!res.ok) {
-                throw new Error("Unauthorized");
+                const error = await res.json();
+                throw UnauthorizedError(error.message || "Unauthorized");
             }
 
             return res.json();
